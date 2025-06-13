@@ -59,6 +59,23 @@ const Orders = ({ token }) => {
     }))
   }
 
+  const deleteOrderHandler = async (orderId) => {
+    if (window.confirm("Are you sure you want to delete this order?")) {
+      try {
+        const response = await axios.post(backendUrl + '/api/order/delete', { orderId }, { headers: { token } });
+        if (response.data.success) {
+          toast.success('Order deleted successfully');
+          await fetchAllOrders();
+        } else {
+          toast.error(response.data.message);
+        }
+      } catch (error) {
+        console.log(error);
+        toast.error(error.message);
+      }
+    }
+  };
+
   useEffect(() => {
     fetchAllOrders();
   }, [token])
@@ -126,6 +143,12 @@ const Orders = ({ token }) => {
                     />
                   </>
                 )}
+                <button 
+                  onClick={() => deleteOrderHandler(order._id)}
+                  className='bg-red-500 text-white font-light px-4 py-2 mt-2 rounded'
+                >
+                  Delete Order
+                </button>
               </div>
             </div>
           ))
