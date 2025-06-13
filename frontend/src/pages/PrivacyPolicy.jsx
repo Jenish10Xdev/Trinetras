@@ -40,7 +40,7 @@ const PrivacyPolicy = () => (
       We may update our Privacy Policy from time to time. Any changes will be posted on this page.
     </p>
     <h3 className='font-semibold mb-2'>Contact Us</h3>
-    <p>If you have any questions about this Privacy Policy, please contact us at contact@foreveryou.com.</p>
+    <p>If you have any questions about this Privacy Policy, please contact us.</p>
   </div>
 );
 
