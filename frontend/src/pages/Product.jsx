@@ -4,30 +4,33 @@ import { ShopContext } from '../context/ShopContext';
 import { assets } from '../assets/assets';
 import RelatedProducts from '../components/RelatedProducts';
 import { AiFillStar, AiOutlineStar } from 'react-icons/ai';
+import axios from 'axios';
 
 const Product = () => {
 
   const { productId } = useParams();
-  const { products, currency ,addToCart } = useContext(ShopContext);
+  const { products, currency ,addToCart, backendUrl } = useContext(ShopContext);
   const [productData, setProductData] = useState(false);
   const [image, setImage] = useState('')
   const [size,setSize] = useState('')
 
   const fetchProductData = async () => {
-
-    products.map((item) => {
-      if (item._id === productId) {
-        setProductData(item)
-        setImage(item.image[0])
-        return null;
+    try {
+      const response = await axios.post(backendUrl + '/api/product/single', { productId });
+      if (response.data.success) {
+        setProductData(response.data.product);
+        setImage(response.data.product.image[0]);
+      } else {
+        console.log("Error fetching single product:", response.data.message);
       }
-    })
-
-  }
+    } catch (error) {
+      console.log("Error fetching single product:", error);
+    }
+  };
 
   useEffect(() => {
     fetchProductData();
-  }, [productId,products])
+  }, [productId,backendUrl])
 
   return productData ? (
     <div className='border-t-2 pt-10 transition-opacity ease-in duration-500 opacity-100'>
@@ -60,6 +63,9 @@ const Product = () => {
               {/* <p className='pl-2'>(122)</p> */}
           </div>
           <p className='mt-5 text-3xl font-medium'>{currency}{productData.price}</p>
+          <p className={`mt-2 text-base font-medium ${productData.status === 'In Stock' ? 'text-green-600' : 'text-red-600'}`}>
+            Status: {productData.status}
+          </p>
           <p className='mt-5 text-gray-500 md:w-4/5'>{productData.description}</p>
           <div className='flex flex-col gap-4 my-8'>
               <p>Select Size</p>
@@ -67,7 +73,11 @@ const Product = () => {
                 <button onClick={()=>setSize("Free Size")} className={`border py-2 px-4 bg-gray-100 ${"Free Size" === size ? 'border-orange-500' : ''}`}>Free Size</button>
               </div>
           </div>
-          <button onClick={()=>addToCart(productData._id,size)} className='w-full bg-black text-white py-2 rounded-md hover:bg-gray-800'>Add to Cart</button>
+          {productData.status === 'Out of Stock' ? (
+            <button disabled className='w-full bg-gray-400 text-white py-2 rounded-md cursor-not-allowed'>Out of Stock</button>
+          ) : (
+            <button onClick={()=>addToCart(productData._id,size)} className='w-full bg-black text-white py-2 rounded-md hover:bg-gray-800'>Add to Cart</button>
+          )}
           <hr className='mt-8 sm:w-4/5' />
           <div className='text-sm text-gray-500 mt-5 flex flex-col gap-1'>
               <p>100% Original product.</p>
