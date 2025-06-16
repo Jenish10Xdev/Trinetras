@@ -9,6 +9,7 @@ import { toast } from 'react-toastify'
 const PlaceOrder = () => {
 
     const [method, setMethod] = useState('cod');
+    const [isLoading, setIsLoading] = useState(false);
     const { navigate, backendUrl, token, cartItems, setCartItems, getCartAmount, delivery_fee, products } = useContext(ShopContext);
     const [formData, setFormData] = useState({
         firstName: '',
@@ -58,6 +59,16 @@ const PlaceOrder = () => {
     const onSubmitHandler = async (event) => {
         event.preventDefault()
         try {
+            setIsLoading(true);
+            // Check if all required fields are filled
+            const requiredFields = ['firstName', 'lastName', 'email', 'street', 'city', 'zipcode', 'country', 'phone'];
+            const emptyFields = requiredFields.filter(field => !formData[field]);
+            
+            if (emptyFields.length > 0) {
+                toast.error(`Please fill in all required fields: ${emptyFields.join(', ')}`);
+                setIsLoading(false);
+                return;
+            }
 
             let orderItems = []
 
@@ -77,6 +88,7 @@ const PlaceOrder = () => {
             // Prevent order if cart is empty
             if (orderItems.length === 0) {
                 toast.error("Your cart is empty. Please add items before placing an order.");
+                setIsLoading(false);
                 return;
             }
 
@@ -92,6 +104,7 @@ const PlaceOrder = () => {
                 case 'cod':
                     const response = await axios.post(backendUrl + '/api/order/place',orderData,{headers:{token}})
                     if (response.data.success) {
+                        toast.success('Order placed successfully!');
                         setCartItems({})
                         navigate('/orders')
                     } else {
@@ -124,6 +137,8 @@ const PlaceOrder = () => {
         } catch (error) {
             console.log(error)
             toast.error(error.message)
+        } finally {
+            setIsLoading(false);
         }
     }
 
@@ -179,7 +194,13 @@ const PlaceOrder = () => {
                     </div> */}
                 </div>
                 <div className='w-full text-end mt-8'>
-                    <button onClick={onSubmitHandler} className='w-full bg-black text-white py-2 rounded-md hover:bg-gray-800'>Place Order</button>
+                    <button 
+                        disabled={isLoading}
+                        onClick={onSubmitHandler} 
+                        className={`w-full bg-black text-white py-2 rounded-md ${isLoading ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-800'}`}
+                    >
+                        {isLoading ? 'Processing...' : 'Place Order'}
+                    </button>
                 </div>
             </div>
         </form>
