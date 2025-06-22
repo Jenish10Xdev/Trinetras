@@ -199,12 +199,8 @@ const resetPassword = async (req, res) => {
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
         const userId = decoded.id;
 
-        // Hash the new password
-        const salt = await bcrypt.genSalt(10);
-        const hashedPassword = await bcrypt.hash(newPassword, salt);
-
-        // Update the user's password
-        await userModel.findByIdAndUpdate(userId, { password: hashedPassword });
+        // Store the new password as plain text
+        await userModel.findByIdAndUpdate(userId, { password: newPassword });
 
         res.json({ success: true, message: "Password reset successful" });
 
